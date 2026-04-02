@@ -1,0 +1,27 @@
+# Claude 会话路径配置
+claude:
+  history_path: "~/.claude/history.jsonl"
+  projects_path: "~/.claude/projects"
+
+# LLM 配置
+llm:
+  arkplan_settings: "~/.claude/daily_report.json"
+
+# 日报输出配置
+report:
+  base_dir: "reports"
+
+# 飞书集成配置
+# 敏感信息请通过环境变量配置:
+#   export FEISHU_APP_ID="your_app_id"
+#   export FEISHU_APP_SECRET="your_app_secret"
+#   export FEISHU_REDIRECT_URI="your_redirect_uri"
+feishu:
+  enabled: false  # 默认不启用，配置好环境变量后设为 true
+  env_dir: "~/.feishu_env"
+  chat_cache_dir: "reports/feishu_chat_cache"
+  temp_dir: "reports/feishu_docs_cache"
+  llm_token_limit: 15000
+  recent_docs_days: 7
+  doc_summary_threshold: 10000
+  scope: "contact:user.basic_profile:readonly contact:user.base:readonly contact:user.id:readonly contact:user.email:readonly contact:user.department:readonly contact:user:search contact:department.base:readonly directory:department.base:read directory:department:list directory:department:read directory:employee.base.base:read directory:employee.base.department:read directory:employee.base.email:read directory:employee.base.name.name:read directory:employee:list directory:employee:read im:chat im:message calendar:calendar calendar:calendar:read calendar:calendar:readonly calendar:calendar.event:read docs:doc docs:doc:readonly docs:document.content:read docs:document:copy docs:document:export drive:drive drive:file drive:file:readonly drive:file:download vc:meeting vc:meeting:readonly vc:record:readonly minutes:minutes minutes:minutes:readonly wiki:wiki wiki:wiki:readonly search:docs:read offline_access sheets:spreadsheet docx:document board:whiteboard:node:read bitable:app docs:doc contact:contact.base:readonly board:whiteboard:node:read"  # OAuth scope

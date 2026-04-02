@@ -1,0 +1,38 @@
+# ========================================================
+# 自动日报工具 - Crontab 完整示例
+# ========================================================
+# 编辑 crontab: crontab -e
+# 查看 crontab: crontab -l
+# 一键部署: ./scripts/setup-crontab.sh
+# ========================================================
+
+# ------------------------------
+# 飞书 Token 管理（关键！）
+# ------------------------------
+# 每天凌晨 1 点刷新飞书 token
+# 作用:
+#   1. 确保 user_access_token 有效
+#   2. 更重要的是：获得新的 refresh_token，将其过期时间重置为 30 天
+#      这样 refresh_token 永远不会过期！
+#
+# 注意: --quiet 表示静默模式，只在出错时输出
+0 1 * * * cd /path/to/daily_report && python -m feishu refresh --quiet
+
+# ------------------------------
+# 日报生成
+# ------------------------------
+# 每天凌晨 2 点生成前一天的日报
+# 注意: 请将 /path/to/daily_report 替换为实际路径
+0 2 * * * cd /path/to/daily_report && python daily_report.py --yesterday
+
+# 每周一凌晨 3 点生成上周的周报
+# 0 3 * * 1 cd /path/to/daily_report && python daily_report.py --weekly $(date -d "last week" +%Y-W%U)
+
+# 每月 1 号凌晨 4 点生成上月的月报
+# 0 4 1 * * cd /path/to/daily_report && python daily_report.py --monthly $(date -d "last month" +%Y-%m)
+
+# ------------------------------
+# 辅助命令
+# ------------------------------
+# 手动查看 token 状态: python -m feishu status
+# 手动刷新 token: python -m feishu refresh
