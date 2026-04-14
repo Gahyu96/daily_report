@@ -22,11 +22,26 @@ class TaskInheritanceManager:
         self.weekly_dir = self.reports_base_dir / "weekly"
         self.monthly_dir = self.reports_base_dir / "monthly"
 
+    def _get_daily_report_path(self, date: datetime) -> Path:
+        """获取日报文件路径（YYYY-MM/YYYY-MM-DD/ 格式）"""
+        month_str = date.strftime("%Y-%m")
+        date_str = date.strftime("%Y-%m-%d")
+        filename = f"daily_report_{date_str}.md"
+        return self.daily_dir / month_str / filename
+
+    def _get_legacy_daily_report_path(self, date: datetime) -> Path:
+        """获取旧格式的日报文件路径（直接在 daily/ 下）"""
+        filename = f"daily_report_{date.strftime('%Y-%m-%d')}.md"
+        return self.daily_dir / filename
+
     def get_incomplete_tasks_from_daily(self, date: datetime) -> List[InheritedTask]:
         """从日报获取未完成任务（date 是要生成报告的日期，取前一天）"""
         yesterday = date - timedelta(days=1)
-        filename = f"daily_report_{yesterday.strftime('%Y-%m-%d')}.md"
-        filepath = self.daily_dir / filename
+        # 先尝试新格式
+        filepath = self._get_daily_report_path(yesterday)
+        if not filepath.exists():
+            # 再尝试旧格式
+            filepath = self._get_legacy_daily_report_path(yesterday)
         return self._get_incomplete_tasks_from_file(
             filepath, yesterday.strftime("%Y-%m-%d"), "daily"
         )

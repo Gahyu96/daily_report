@@ -38,7 +38,7 @@ def search_messages(config, query=None, relative_time="today", page_size=20):
         print(f"  关键词: {query}")
     print("="*80)
 
-    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "reports/feishu_chat_cache"))
+    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "cache/feishu_chat_cache"))
 
     try:
         result = collector.search_messages(
@@ -101,7 +101,7 @@ def summarize_sessions(config, days=2, limit=10000, output=None):
     from feishu.summarizer import FeishuSummarizer
     collector = FeishuCollector(
         access_token=access_token,
-        cache_base_dir=feishu_config.get("chat_cache_dir", "reports/feishu_chat_cache")
+        cache_base_dir=feishu_config.get("chat_cache_dir", "cache/feishu_chat_cache")
     )
     summarizer = FeishuSummarizer(collector, config.get("llm", {}))
 
@@ -176,7 +176,7 @@ def collect_and_display_data(config, date_str=None):
     print(f"飞书数据采集 - 目标日期: {date.strftime('%Y-%m-%d')}")
     print("="*80)
 
-    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "reports/feishu_chat_cache"))
+    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "cache/feishu_chat_cache"))
 
     # 1. 聊天记录
     print("\n" + "="*80)

@@ -19,8 +19,8 @@ report:
 feishu:
   enabled: false  # 默认不启用，配置好环境变量后设为 true
   env_dir: "~/.feishu_env"
-  chat_cache_dir: "reports/feishu_chat_cache"
-  temp_dir: "reports/feishu_docs_cache"
+  chat_cache_dir: "cache/feishu_chat_cache"
+  temp_dir: "cache/feishu_docs_cache"
   llm_token_limit: 15000
   recent_docs_days: 7
   doc_summary_threshold: 10000

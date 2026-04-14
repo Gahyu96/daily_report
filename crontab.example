@@ -9,21 +9,21 @@
 # ------------------------------
 # 飞书 Token 管理（关键！）
 # ------------------------------
-# 每天凌晨 1 点刷新飞书 token
+# 每小时刷新飞书 token（确保 refresh_token 永续）
 # 作用:
 #   1. 确保 user_access_token 有效
 #   2. 更重要的是：获得新的 refresh_token，将其过期时间重置为 30 天
 #      这样 refresh_token 永远不会过期！
 #
 # 注意: --quiet 表示静默模式，只在出错时输出
-0 1 * * * cd /path/to/daily_report && python -m feishu refresh --quiet
+30 * * * * cd /path/to/daily_report && python -m feishu refresh --quiet >> /tmp/daily_report_cron.log 2>&1
 
 # ------------------------------
 # 日报生成
 # ------------------------------
 # 每天凌晨 2 点生成前一天的日报
 # 注意: 请将 /path/to/daily_report 替换为实际路径
-0 2 * * * cd /path/to/daily_report && python daily_report.py --yesterday
+0 2 * * * cd /path/to/daily_report && python -m feishu refresh --quiet >> /tmp/daily_report_cron.log 2>&1 && python daily_report.py --yesterday >> /tmp/daily_report_cron.log 2>&1
 
 # 每周一凌晨 3 点生成上周的周报
 # 0 3 * * 1 cd /path/to/daily_report && python daily_report.py --weekly $(date -d "last week" +%Y-W%U)
@@ -34,5 +34,6 @@
 # ------------------------------
 # 辅助命令
 # ------------------------------
+# 查看 cron 日志: tail -f /tmp/daily_report_cron.log
 # 手动查看 token 状态: python -m feishu status
 # 手动刷新 token: python -m feishu refresh

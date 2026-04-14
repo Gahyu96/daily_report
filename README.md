@@ -40,8 +40,8 @@ report:
 # 飞书集成配置（可选）
 feishu:
   enabled: true
-  app_id: "cli_a906ff60e8b99bd3"
-  app_secret: "your_app_secret_here"
+  app_id: "os.environ/FEISHU_APP_ID"
+  app_secret: "os.environ/FEISHU_APP_SECRET"
   env_dir: "~/.feishu_env"
   # ... 其他配置
 ```

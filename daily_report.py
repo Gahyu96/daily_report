@@ -206,7 +206,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
         print(f"飞书认证失败: {e}")
         return result
 
-    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "reports/feishu_chat_cache"))
+    collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "cache/feishu_chat_cache"))
 
     # 严格的目标日期时间范围
     target_start = datetime(date.year, date.month, date.day, 0, 0, 0)
@@ -356,7 +356,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
                     feishu_config.get("temp_dir", "/tmp/feishu_docs"),
                     config["llm"]["arkplan_settings"],
                     feishu_config.get("doc_summary_threshold", 3500),
-                    feishu_config.get("doc_cache_dir", "reports/feishu_doc_cache"),
+                    feishu_config.get("doc_cache_dir", "cache/feishu_doc_cache"),
                     feishu_config.get("doc_cache_ttl_days", 7),
                     feishu_config
                 )

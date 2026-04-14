@@ -57,7 +57,7 @@ class RateLimitError(Exception):
 
 
 class FeishuCollector:
-    def __init__(self, access_token: str, cache_base_dir: str = "reports/feishu_chat_cache"):
+    def __init__(self, access_token: str, cache_base_dir: str = "cache/feishu_chat_cache"):
         self.access_token = access_token
         self.cache_base_dir = Path(cache_base_dir)
         self.cache_base_dir.mkdir(parents=True, exist_ok=True)

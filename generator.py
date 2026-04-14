@@ -127,10 +127,25 @@ class ReportGenerator:
         self.weekly_dir.mkdir(parents=True, exist_ok=True)
         self.monthly_dir.mkdir(parents=True, exist_ok=True)
 
-    def daily_report_exists(self, date: datetime) -> bool:
-        """检查日报是否已存在"""
+    def get_daily_report_path(self, date: datetime) -> Path:
+        """获取日报文件路径（YYYY-MM/YYYY-MM-DD/ 格式）"""
+        month_str = date.strftime("%Y-%m")
+        date_str = date.strftime("%Y-%m-%d")
+        filename = f"daily_report_{date_str}.md"
+        return self.daily_dir / month_str / filename
+
+    def _get_legacy_daily_report_path(self, date: datetime) -> Path:
+        """获取旧格式的日报文件路径（直接在 daily/ 下）"""
         filename = f"daily_report_{date.strftime('%Y-%m-%d')}.md"
-        return (self.daily_dir / filename).exists()
+        return self.daily_dir / filename
+
+    def daily_report_exists(self, date: datetime) -> bool:
+        """检查日报是否已存在（兼容新旧格式）"""
+        # 先检查新格式
+        if self.get_daily_report_path(date).exists():
+            return True
+        # 再检查旧格式
+        return self._get_legacy_daily_report_path(date).exists()
 
     def generate_daily(self, date: datetime, conversation_text: str) -> Path:
         """
@@ -159,8 +174,8 @@ class ReportGenerator:
             markdown = self._generate_fallback_report(conversation_text, date)
 
         # 保存文件
-        filename = f"daily_report_{date.strftime('%Y-%m-%d')}.md"
-        output_path = self.daily_dir / filename
+        output_path = self.get_daily_report_path(date)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(markdown)
@@ -227,8 +242,8 @@ class ReportGenerator:
 
 ## 六、其他备注
 """
-        filename = f"daily_report_{date.strftime('%Y-%m-%d')}.md"
-        output_path = self.daily_dir / filename
+        output_path = self.get_daily_report_path(date)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(markdown)
         return output_path
@@ -681,12 +696,15 @@ class ReportGenerator:
                 return start_date, end_date
 
     def _read_daily_reports(self, start_date: datetime, end_date: datetime) -> List[str]:
-        """读取日期范围内的所有日报"""
+        """读取日期范围内的所有日报（兼容新旧格式）"""
         reports = []
         current = start_date
         while current <= end_date:
-            filename = f"daily_report_{current.strftime('%Y-%m-%d')}.md"
-            path = self.daily_dir / filename
+            # 先尝试新格式
+            path = self.get_daily_report_path(current)
+            if not path.exists():
+                # 再尝试旧格式
+                path = self._get_legacy_daily_report_path(current)
             if path.exists():
                 with open(path, "r", encoding="utf-8") as f:
                     reports.append(f.read())

@@ -47,7 +47,7 @@ class FeishuDocExporter:
         temp_dir: str = "/tmp/feishu_docs",
         arkplan_settings: str = "~/.claude/arkplan.json",
         summary_threshold: int = 3500,
-        doc_cache_dir: str = "reports/feishu_doc_cache",
+        doc_cache_dir: str = "cache/feishu_doc_cache",
         cache_ttl_days: int = 7,
         feishu_config: Optional[Dict] = None
     ):

@@ -12,11 +12,17 @@ class CacheManager:
         self.base_dir = Path(base_dir)
 
     def get_cache_dir(self, date: datetime) -> Path:
-        """获取指定日期的缓存目录"""
+        """获取指定日期的缓存目录（YYYY-MM/YYYY-MM-DD/ 格式）"""
+        month_str = date.strftime("%Y-%m")
         date_str = date.strftime("%Y-%m-%d")
-        cache_dir = self.base_dir / date_str
+        cache_dir = self.base_dir / month_str / date_str
         cache_dir.mkdir(parents=True, exist_ok=True)
         return cache_dir
+
+    def _get_legacy_cache_dir(self, date: datetime) -> Path:
+        """获取旧格式的缓存目录（YYYY-MM-DD/ 格式）"""
+        date_str = date.strftime("%Y-%m-%d")
+        return self.base_dir / date_str
 
     def get_cache_path(self, date: datetime, source: str) -> Path:
         """获取指定来源的缓存文件路径"""
@@ -24,14 +30,24 @@ class CacheManager:
         return cache_dir / f"{source}.md"
 
     def has_cache(self, date: datetime, source: str) -> bool:
-        """检查缓存是否存在"""
-        return self.get_cache_path(date, source).exists()
+        """检查缓存是否存在（兼容新旧格式）"""
+        # 先检查新格式
+        if self.get_cache_path(date, source).exists():
+            return True
+        # 再检查旧格式
+        legacy_path = self._get_legacy_cache_dir(date) / f"{source}.md"
+        return legacy_path.exists()
 
     def read_cache(self, date: datetime, source: str) -> Optional[str]:
-        """读取缓存"""
+        """读取缓存（兼容新旧格式）"""
         cache_path = self.get_cache_path(date, source)
         if not cache_path.exists():
-            return None
+            # 尝试旧格式
+            legacy_path = self._get_legacy_cache_dir(date) / f"{source}.md"
+            if legacy_path.exists():
+                cache_path = legacy_path
+            else:
+                return None
         with open(cache_path, "r", encoding="utf-8") as f:
             content = f.read()
         # 跳过元数据部分，返回内容
