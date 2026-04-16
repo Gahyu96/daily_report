@@ -197,18 +197,22 @@ class ReportGenerator:
         claude_projects_count = content.count("=== Claude 项目会话 ===")
         feishu_chats_count = content.count("=== 飞书会话 ===")
         feishu_docs_count = content.count("=== 飞书文档 ===")
+        feishu_calendar_count = content.count("=== 飞书日程 ===")
 
         return f"""# 日报 - {date.strftime('%Y-%m-%d')}
 
-## 一、今日总结
+## 一、今日概览
 今日有工作记录，详见下方内容。
 
 ## 二、核心工作内容
 
 ### 💻 自主工作
-- 有工作记录，请查看详细内容 | 来源: 综合
+- 有工作记录，请查看详细内容
+  - 来源: 综合
 
-## 三、遇到的困难
+> 📎 来源: 综合
+
+## 三、问题与风险
 
 ## 四、明日计划
 
@@ -223,20 +227,21 @@ class ReportGenerator:
 - Claude 项目会话: {claude_projects_count} 部分
 - 飞书会话: {feishu_chats_count} 部分
 - 飞书文档: {feishu_docs_count} 部分
+- 飞书日程: {feishu_calendar_count} 部分
 """
 
     def _write_empty_daily(self, date: datetime) -> Path:
         """写入空日报"""
         markdown = f"""# 日报 - {date.strftime('%Y-%m-%d')}
 
-## 一、今日总结
+## 一、今日概览
 今日无工作记录。
 
-## 二、关键进展
+## 二、核心工作内容
 
-## 三、遇到的困难
+## 三、问题与风险
 
-## 四、下一步计划
+## 四、明日计划
 
 ## 五、需要支持
 
@@ -450,16 +455,32 @@ class ReportGenerator:
         date_str = date.strftime('%Y-%m-%d') if date else '2026-03-24'
         return f"""# 日报 - {date_str}
 
-## 一、今日总结
-今日完成了自动日报工具的开发工作。
+## 一、今日概览
+今日完成了自动日报工具的开发工作。上午完成了核心框架搭建，下午进行了测试和优化。
 
-## 二、关键进展
-- [自主工作] 完成 Claude 会话采集器
-- [自主工作] 完成日报生成器框架
+## 二、核心工作内容
 
-## 三、遇到的困难
+### 🌅 上午（09:00-12:00）
 
-## 四、下一步计划
+**💻 自主工作**
+- 完成 Claude 会话采集器
+  - 实现了历史会话读取功能
+  - 支持按日期筛选会话内容
+
+> 📎 来源: Claude 项目会话
+
+### 🌆 下午（13:00-18:00）
+
+**💻 自主工作**
+- 完成日报生成器框架
+  - 实现了提示词构建模块
+  - 完成了 LLM 调用和结果解析
+
+> 📎 来源: Claude 项目会话
+
+## 三、问题与风险
+
+## 四、明日计划
 - [ ] 测试完整流程 - 今天
 
 ## 五、需要支持
