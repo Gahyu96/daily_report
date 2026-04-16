@@ -1492,7 +1492,7 @@ class FeishuCollector:
             result = self.search_messages(
                 relative_time=f"last_{days}_days",
                 sender_type="bot",
-                page_size=50
+                page_size=100
             )
 
             messages = result.get("messages", [])
@@ -1502,10 +1502,20 @@ class FeishuCollector:
             for msg in messages:
                 sender = msg.get("sender", {})
                 sender_name = sender.get("name", "")
+                content = msg.get("content", "")
 
-                # 检查是否是智能纪要助手
-                if "智能纪要" in sender_name or "minutes" in sender_name.lower():
-                    content = msg.get("content", "")
+                # 检查是否是智能纪要助手：
+                # 1. 通过 sender name 匹配（旧方式）
+                # 2. 通过消息内容中的 vc_assistant_notice 匹配（新方式）
+                # 3. 通过消息内容中的"智能纪要"匹配（新方式）
+                is_minutes = (
+                    "智能纪要" in sender_name
+                    or "minutes" in sender_name.lower()
+                    or "vc_assistant_notice" in content
+                    or "智能纪要" in content
+                )
+
+                if is_minutes:
                     # 提取文档链接
                     doc_links = self._extract_doc_links_from_content(content)
                     if doc_links:

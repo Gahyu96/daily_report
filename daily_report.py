@@ -239,6 +239,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
     # 预检查：是否需要获取飞书会话（聊天或文档任一需要更新时）
     need_sessions = force or not cache_mgr.has_cache(date, "feishu_chats") or not cache_mgr.has_cache(date, "feishu_docs")
     sessions = None
+    original_feishu_sessions = None  # 保存原始飞书会话用于提取文档链接
     summarizer = None
     if need_sessions:
         t0 = time.time()
@@ -251,6 +252,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
                 max_messages=10000,
                 use_enhanced=True
             )
+            original_feishu_sessions = sessions  # 保存原始引用
             total_msgs = sum(len(s.messages) for s in sessions) if sessions else 0
             print(f"  [fetch_sessions] {time.time()-t0:.1f}s, {len(sessions) if sessions else 0} 会话 {total_msgs} 消息")
         except Exception as e:
@@ -330,10 +332,24 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
         t0 = time.time()
         all_doc_urls = []
         try:
-            if sessions is not None:
-                for session in sessions:
-                    for msg in session.messages:
-                        content = msg.get("content", "")
+            # 从原始飞书会话中提取文档链接
+            if original_feishu_sessions is not None:
+                for session in original_feishu_sessions:
+                    # 安全检查：确保 session 有 messages 属性
+                    if hasattr(session, 'messages'):
+                        messages = session.messages
+                    elif isinstance(session, (list, tuple)) and len(session) > 0 and hasattr(session[0], 'get'):
+                        # 如果是消息列表，直接使用
+                        messages = session
+                    else:
+                        continue
+
+                    for msg in messages:
+                        # FeishuSessionMessage 对象有 content 属性
+                        if hasattr(msg, 'content'):
+                            content = msg.content
+                        else:
+                            content = msg.get("content", "")
                         links = collector.extract_doc_links_from_text(content)
                         all_doc_urls.extend(links)
 
@@ -358,7 +374,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
             if unique_doc_urls:
                 exporter = FeishuDocExporter(
                     feishu_config.get("temp_dir", "/tmp/feishu_docs"),
-                    config["llm"]["arkplan_settings"],
+                    config["llm"],
                     feishu_config.get("doc_summary_threshold", 3500),
                     feishu_config.get("doc_cache_dir", "cache/feishu_doc_cache"),
                     feishu_config.get("doc_cache_ttl_days", 7),
