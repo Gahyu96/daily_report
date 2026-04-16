@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ### 1.3 配置说明
 
-编辑 `config.yaml` 文件：
+复制 `config.example.yaml` 为 `config.yaml` 并编辑：
 
 ```yaml
 # Claude 会话路径配置
@@ -46,7 +46,23 @@ feishu:
   app_id: "os.environ/FEISHU_APP_ID"
   app_secret: "os.environ/FEISHU_APP_SECRET"
   env_dir: "~/.feishu_env"
-  # ... 其他配置
+  chat_cache_dir: "cache/feishu_chat_cache"
+  temp_dir: "cache/feishu_docs_cache"
+  llm_token_limit: 15000
+  recent_docs_days: 7
+  doc_summary_threshold: 10000
+  redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
+```
+
+**环境变量配置：**
+
+在 `~/.zshrc` 或 `~/.bashrc` 中添加：
+
+```bash
+export ARK_API_KEY="your_ark_api_key"
+export FEISHU_APP_ID="your_feishu_app_id"
+export FEISHU_APP_SECRET="your_feishu_app_secret"
+export FEISHU_REDIRECT_URI="your_redirect_uri"
 ```
 
 如果启用飞书集成，需要先授权：
@@ -81,14 +97,34 @@ python daily_report.py --monthly 2026-03
 
 ### 1.5 Crontab 定时配置
 
-每天凌晨 2 点自动生成前一天的日报：
+项目提供了 `cron-wrapper.sh` 和 `crontab.txt` 用于定时任务配置：
+
+```bash
+# 查看当前 crontab
+crontab -l
+
+# 安装项目提供的 crontab 配置
+crontab crontab.txt
+
+# 编辑 crontab
+crontab -e
+```
+
+**crontab.txt 包含：**
+- 每小时刷新飞书 token（确保 token 永续）
+- 每天凌晨 2 点生成前一天的日报
+
+**手动配置示例：**
 
 ```bash
 # 编辑 crontab
 crontab -e
 
-# 添加这一行（注意替换实际路径）
-0 2 * * * cd /path/to/daily_report && python daily_report.py --yesterday
+# Token 刷新: 每小时一次
+30 * * * * /path/to/daily_report/cron-wrapper.sh python -m feishu refresh --quiet >> /tmp/daily_report_cron.log 2>&1
+
+# 日报生成: 每天凌晨 2 点
+0 2 * * * /path/to/daily_report/cron-wrapper.sh python daily_report.py --yesterday >> /tmp/daily_report_cron.log 2>&1
 ```
 
 ---
@@ -142,9 +178,12 @@ daily_report/
 ├── collector.py             # Claude 会话采集
 ├── generator.py             # 报告生成器
 ├── cache_manager.py         # 缓存管理
-├── config.yaml              # 配置文件
+├── config.example.yaml       # 配置模板
+├── config.yaml           # 配置文件（gitignore）
 ├── requirements.txt         # 依赖
 ├── README.md               # 本文件
+├── cron-wrapper.sh       # Cron 包装脚本（加载环境变量）
+├── crontab.txt          # Crontab 配置示例
 ├── feishu/                 # 飞书集成模块
 │   ├── __init__.py
 │   ├── __main__.py        # 飞书 CLI
@@ -156,12 +195,17 @@ daily_report/
 ├── inheritance/            # 任务继承模块
 │   ├── __init__.py
 │   └── manager.py
+├── docs/                   # 文档目录
+│   ├── plans/             # 计划文档
+│   ├── specs/             # 设计文档
+│   └── PROJECT_GUIDE.md  # 项目指南
+├── cache/                  # 缓存目录
+│   ├── feishu_chat_cache/
+│   └── feishu_docs_cache/
 └── reports/               # 报告输出目录
-    ├── daily/            # 日报
+    ├── daily/            # 日报（YYYY-MM/YYYY-MM-DD/ 格式）
     ├── weekly/           # 周报
-    ├── monthly/          # 月报
-    ├── feishu_chat_cache/
-    └── feishu_doc_cache/
+    └── monthly/          # 月报
 ```
 
 ### 3.2 核心模块说明
@@ -200,8 +244,8 @@ python daily_report.py --date 2026-03-20 --force
 
 # 飞书 token 管理
 python -m feishu auth          # 重新授权
-python -m feishu token status  # 查看 token 状态
-python -m feishu token refresh # 刷新 token
+python -m feishu status        # 查看 token 状态
+python -m feishu refresh       # 刷新 token
 ```
 
 ---
@@ -216,3 +260,6 @@ A: 使用 `--force` 参数：`python daily_report.py --date 2026-03-20 --force`
 
 **Q: 可以不使用飞书集成吗？**
 A: 可以，在 config.yaml 中设置 `feishu.enabled: false` 即可。
+
+**Q: cron 任务不执行怎么办？**
+A: 使用 `cron-wrapper.sh` 确保环境变量正确加载，检查日志 `/tmp/daily_report_cron.log`。
