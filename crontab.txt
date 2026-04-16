@@ -1,0 +1,18 @@
+# ========================================================
+# 自动日报工具 - Crontab 配置
+# ========================================================
+# 安装方法: crontab crontab.txt
+# 查看状态: crontab -l
+# ========================================================
+
+*/5 * * * * /Users/liangjiayu/miniforge3/bin/conda run -n base python /Users/liangjiayu/projects/ip_proxy_test/ip_monitor.py >> /tmp/ip_monitor_cron.log 2>&1
+
+# ========================================================
+# 自动日报工具
+# ========================================================
+
+# Token 刷新: 每小时一次（确保 token 永续）
+30 * * * * /Users/liangjiayu/projects/daily_report/cron-wrapper.sh /Users/liangjiayu/miniforge3/bin/python -m feishu refresh --quiet >> /tmp/daily_report_cron.log 2>&1
+
+# 日报生成: 每天凌晨 2 点生成前一天的日报
+0 2 * * * /Users/liangjiayu/projects/daily_report/cron-wrapper.sh /Users/liangjiayu/miniforge3/bin/python daily_report.py --yesterday >> /tmp/daily_report_cron.log 2>&1

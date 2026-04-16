@@ -1,6 +1,7 @@
 """
 飞书聊天 LLM 过滤模块
 """
+import os
 import json
 import tempfile
 import subprocess
@@ -345,7 +346,7 @@ class ChatFilter:
             cmd = [
                 "curl",
                 "https://ark.cn-beijing.volces.com/api/v3/responses",
-                "-H", "Authorization: Bearer 3a948797-497c-4a2c-b9d2-7b3d7771b788",
+                "-H", f"Authorization: Bearer {os.environ.get('ARK_API_KEY', '')}",
                 "-H", "Content-Type: application/json",
                 "-d", json.dumps(request_data, ensure_ascii=False)
             ]
