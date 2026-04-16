@@ -31,7 +31,10 @@ claude:
 
 # LLM 配置
 llm:
-  arkplan_settings: "~/.claude/daily_report.json"
+  api_key: "os.environ/ARK_API_KEY"
+  base_url: "https://ark.cn-beijing.volces.com/api/v3/responses"
+  model: "doubao-seed-2-0-pro-260215"
+  timeout: 600
 
 # 日报输出配置
 report:
