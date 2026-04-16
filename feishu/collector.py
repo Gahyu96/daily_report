@@ -100,7 +100,7 @@ class FeishuCollector:
 
         # 提取所有chat_id，批量获取会话信息
         chat_ids = list({msg.get("chat_id", "") for msg in raw_messages if msg.get("chat_id")})
-        chat_infos = self._batch_query_chats(chat_ids)
+        chat_infos = self._fetch_chat_contexts(chat_ids)
 
         # 转换为ChatMessage对象并填充信息
         all_messages = []
