@@ -6,7 +6,7 @@ import json
 import tempfile
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 from dataclasses import dataclass
 
 
@@ -78,8 +78,8 @@ class ChatFilter:
 - 对于模糊的内容，保守处理（不确定的就保留）
 """
 
-    def __init__(self, arkplan_settings: str, token_limit: int = 15000):
-        self.arkplan_settings = Path(arkplan_settings)
+    def __init__(self, llm_config: Dict[str, Any], token_limit: int = 15000):
+        self.llm_config = llm_config
         self.token_limit = token_limit
 
     def classify_and_filter_chats(self, chat_content: str) -> Tuple[str, Dict[str, int]]:
@@ -328,7 +328,7 @@ class ChatFilter:
         try:
             # 构建请求数据
             request_data = {
-                "model": "doubao-seed-2-0-pro-260215",
+                "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
                 "input": [
                     {
                         "role": "user",
@@ -345,8 +345,8 @@ class ChatFilter:
             # 构建curl命令
             cmd = [
                 "curl",
-                "https://ark.cn-beijing.volces.com/api/v3/responses",
-                "-H", f"Authorization: Bearer {os.environ.get('ARK_API_KEY', '')}",
+                self.llm_config.get("base_url", "https://ark.cn-beijing.volces.com/api/v3/responses"),
+                "-H", f"Authorization: Bearer {self.llm_config.get('api_key', '')}",
                 "-H", "Content-Type: application/json",
                 "-d", json.dumps(request_data, ensure_ascii=False)
             ]

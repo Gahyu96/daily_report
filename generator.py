@@ -115,8 +115,8 @@ class ReportGenerator:
 
 """
 
-    def __init__(self, arkplan_settings: str, base_dir: str = "reports"):
-        self.arkplan_settings = Path(os.path.expanduser(arkplan_settings))
+    def __init__(self, llm_config: Dict[str, Any], base_dir: str = "reports"):
+        self.llm_config = llm_config
         self.base_dir = Path(base_dir)
         self.daily_dir = self.base_dir / "daily"
         self.weekly_dir = self.base_dir / "weekly"
@@ -255,7 +255,7 @@ class ReportGenerator:
         try:
             # 构建请求数据
             request_data = {
-                "model": "doubao-seed-2-0-pro-260215",
+                "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
                 "input": [
                     {
                         "role": "user",
@@ -272,8 +272,8 @@ class ReportGenerator:
             # 构建curl命令
             cmd = [
                 "curl",
-                "https://ark.cn-beijing.volces.com/api/v3/responses",
-                "-H", f"Authorization: Bearer {os.environ.get('ARK_API_KEY', '')}",
+                self.llm_config.get("base_url", "https://ark.cn-beijing.volces.com/api/v3/responses"),
+                "-H", f"Authorization: Bearer {self.llm_config.get('api_key', '')}",
                 "-H", "Content-Type: application/json",
                 "-d", json.dumps(request_data, ensure_ascii=False)
             ]
@@ -285,7 +285,7 @@ class ReportGenerator:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=600,
+                timeout=self.llm_config.get("timeout", 600),
             )
 
             print(f"LLM call done in {_time.time()-_t0:.1f}s")
@@ -718,7 +718,7 @@ class ReportGenerator:
         try:
             # 构建请求数据
             request_data = {
-                "model": "doubao-seed-2-0-pro-260215",
+                "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
                 "input": [
                     {
                         "role": "user",
@@ -735,8 +735,8 @@ class ReportGenerator:
             # 构建curl命令
             cmd = [
                 "curl",
-                "https://ark.cn-beijing.volces.com/api/v3/responses",
-                "-H", f"Authorization: Bearer {os.environ.get('ARK_API_KEY', '')}",
+                self.llm_config.get("base_url", "https://ark.cn-beijing.volces.com/api/v3/responses"),
+                "-H", f"Authorization: Bearer {self.llm_config.get('api_key', '')}",
                 "-H", "Content-Type: application/json",
                 "-d", json.dumps(request_data, ensure_ascii=False)
             ]
@@ -746,7 +746,7 @@ class ReportGenerator:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300,
+                timeout=self.llm_config.get("timeout", 300),
             )
 
             if result.returncode != 0:
@@ -866,7 +866,7 @@ class ReportGenerator:
         try:
             # 构建请求数据
             request_data = {
-                "model": "doubao-seed-2-0-pro-260215",
+                "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
                 "input": [
                     {
                         "role": "user",
@@ -883,8 +883,8 @@ class ReportGenerator:
             # 构建curl命令
             cmd = [
                 "curl",
-                "https://ark.cn-beijing.volces.com/api/v3/responses",
-                "-H", f"Authorization: Bearer {os.environ.get('ARK_API_KEY', '')}",
+                self.llm_config.get("base_url", "https://ark.cn-beijing.volces.com/api/v3/responses"),
+                "-H", f"Authorization: Bearer {self.llm_config.get('api_key', '')}",
                 "-H", "Content-Type: application/json",
                 "-d", json.dumps(request_data, ensure_ascii=False)
             ]
@@ -894,7 +894,7 @@ class ReportGenerator:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=600,
+                timeout=self.llm_config.get("timeout", 600),
             )
 
             if result.returncode != 0:

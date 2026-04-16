@@ -46,7 +46,11 @@ def load_config(config_path: str = "config.yaml") -> dict:
                 "projects_path": "~/.claude/projects",
             },
             "llm": {
-                "arkplan_settings": "~/.claude/arkplan.json",
+                "api_key": os.environ.get("ARK_API_KEY", ""),
+                "base_url": "https://ark.cn-beijing.volces.com/api/v3/responses",
+                "model": "doubao-seed-2-0-pro-260215",
+                "timeout": 600,
+                "arkplan_settings": "~/.claude/arkplan.json",  # 向后兼容
             },
             "report": {
                 "base_dir": "reports",
@@ -281,7 +285,7 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
     if result.get("feishu_chats"):
         t0 = time.time()
         try:
-            chat_filter = ChatFilter(config["llm"]["arkplan_settings"])
+            chat_filter = ChatFilter(config["llm"])
             chat_content = result["feishu_chats"]
             sessions = chat_filter._split_into_sessions(chat_content)
             filtered_parts = []
@@ -546,7 +550,7 @@ def main():
         config["claude"]["projects_path"],
     )
     generator = ReportGenerator(
-        config["llm"]["arkplan_settings"],
+        config["llm"],
         config["report"]["base_dir"],
     )
 

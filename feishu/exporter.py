@@ -45,14 +45,20 @@ class FeishuDocExporter:
     def __init__(
         self,
         temp_dir: str = "/tmp/feishu_docs",
-        arkplan_settings: str = "~/.claude/arkplan.json",
+        llm_config_or_arkplan: any = "~/.claude/arkplan.json",
         summary_threshold: int = 3500,
         doc_cache_dir: str = "cache/feishu_doc_cache",
         cache_ttl_days: int = 7,
         feishu_config: Optional[Dict] = None
     ):
         self.temp_dir = Path(temp_dir)
-        self.arkplan_settings = Path(arkplan_settings)
+        # 向后兼容：支持字符串（arkplan_settings路径）或 dict（llm_config）
+        if isinstance(llm_config_or_arkplan, dict):
+            self.llm_config = llm_config_or_arkplan
+            self.arkplan_settings = Path(llm_config_or_arkplan.get("arkplan_settings", "~/.claude/arkplan.json"))
+        else:
+            self.llm_config = {}
+            self.arkplan_settings = Path(llm_config_or_arkplan)
         self.summary_threshold = summary_threshold
         self.doc_cache_dir = Path(doc_cache_dir)
         self.cache_ttl_days = cache_ttl_days
