@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-harness-construction": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "5601e5ab105717b62a249aa6875482d1865433dfd89e2d7fe25166df950e13ec"
+    },
+    "agentic-engineering": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "6437efa9eac379b2701001d596610adf1f37afa02b8309145c9462c8e3cf9eff"
+    },
+    "ai-first-engineering": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "62b9568daf7bb5cbf649e55becec5739439e50c892b269c25dfe007d6a3cb54d"
+    },
+    "article-writing": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "5edb80686af1c1f21faacd784dc782df2b628e746b1d53e4e30a585e4d7cd79d"
+    },
+    "autonomous-loops": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "c6c4fdcddd86a0ee1cdca511c8de9abdf114deb0aea1d27fba3889447f975d2f"
+    },
+    "claude-api": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "bea0610f07db61fe9b3291b6bbe344f117e8ac391744b240ddf3e0e69b1c2457"
+    },
+    "cost-aware-llm-pipeline": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "f50e4b9a3fe3c2c55d0f8141b933e0b9a44c1fab38c002fd4d90d52850d71f04"
+    },
+    "deep-research": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "cde6edb0b1a98534e20a5ddc764e5ef40b24238aed960dc9352771a23db31c8b"
+    },
+    "eval-harness": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "74550bf0080223fa5547c4da45279660df907f726fa8247de85ca75733c7fe79"
+    },
+    "investor-materials": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "ad93531861fb7d98214a4c52facd1b460256247184051747ed6e77fed2eefed5"
+    },
+    "investor-outreach": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "7a1e0f4b04f5ef57bf4e5762f053abc9113f2b1b8b66339533676c9bcfde69f3"
+    },
+    "lark-approval": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "97f4931f97dc1353994e771cc6abc1bb2d84503a999842d5c0ca682dd5f07c26"
+    },
+    "lark-attendance": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "45c8ec357a987fa755b57a757ad01d00c32a5a6e3eb96d3902d8851aad6f8528"
+    },
+    "lark-base": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "6ae56805b057fd4dbf53c605ec5da661b5424274521cd6352fc8e2694c3f4955"
+    },
+    "lark-calendar": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "8ae77b2a3bb8ceba248e8489515f8ba81decd682031246eaee32847ad3531cbf"
+    },
+    "lark-contact": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "9bee3d9eb78b1d9ba92d14abb40832cc180704d214ea6226475991defd8fdfb6"
+    },
+    "lark-doc": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "4e270c179e321ed61ea4d2086669001caf409764ad87145fd104d9c74c751256"
+    },
+    "lark-drive": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "d270f088bd84b2c5503fcf7b4d9189f5326dcc722d3f5fbf3057c2d39d908759"
+    },
+    "lark-event": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "354a806f5a882efb61ef4a53c00d79f164d5d495fd7568be6176c5eef7125fd8"
+    },
+    "lark-im": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "57347653a93e78001a4c38f64e10e1f319e0a519ebc2112d15a6d8c4df7b70f7"
+    },
+    "lark-mail": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "41684cfabc6419d3aac7253f30d503dbd5a2e73aace82705ba062ddcb79bdf44"
+    },
+    "lark-minutes": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "b2878cd870bbdbac492b51b9ce85f7f237461e59d5bd77cf710bc36b10d9e22d"
+    },
+    "lark-openapi-explorer": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "a49ad0ad41b4bdeec9f5ccae6d5f6fba7b128fae0b0f428fde7df94cda6e6555"
+    },
+    "lark-shared": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "840bfd75bcbe6bd1e5a1f1cf46637830dde8528c73e8f5f5186bf5461e4aed7e"
+    },
+    "lark-sheets": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "c31dd17abf811ac35ea548a894941c50fff9fc585ab6600617462795c8971a67"
+    },
+    "lark-skill-maker": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "78e2f8725d2525c846bd1fd07d82bdc718be4c382b9971d3d74ffa14d3e2b7c5"
+    },
+    "lark-slides": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "fef5b400aab7e68fa176d721fd55a50daaa3ca92f5116a355026d851dc379881"
+    },
+    "lark-task": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "d14f18ef907a79fd512a8e14d1d0a05e6fd6b95151e2c268b68f3bf824b704e9"
+    },
+    "lark-vc": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "178a4c41b41097b0a91c7c64697e4b75f409b8652f1475b0bbd61bb3a3bcc76b"
+    },
+    "lark-whiteboard": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "6f125c23efda73af42a556c11bd41c12673630a4ce470a79d6ac82f5000f0d29"
+    },
+    "lark-whiteboard-cli": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "7c3ae4795ff885d84598d558907a6e72d7c2ae4abf899bc657cb986de1814ebf"
+    },
+    "lark-wiki": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "9de11755175a601069f3140e812e977fe707943d8190783649b23ac8991188b3"
+    },
+    "lark-workflow-meeting-summary": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "944cb011d4801811f6caffec7a43ae27f921cd527fb023d605cd0e98be3722f9"
+    },
+    "lark-workflow-standup-report": {
+      "source": "larksuite/cli",
+      "sourceType": "github",
+      "computedHash": "37664a511e12ecab3fb8eba7a27a42ca35170668b5eaec6b5798229cdebb98a0"
+    },
+    "market-research": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "3a355a6ecccfe774773460d06ae3e60a57963996fe8f0d32b9a62d7ad5f71fa5"
+    },
+    "mcp-server-patterns": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "706569fbfaa3eec0b24063408f36a9eb836b1b8c9ad1358bd42b39fc2f4da6ed"
+    },
+    "nanoclaw-repl": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "36c5e39e32a6cb0e6887af15517394d0d43df8f2a9635a3ee7350bd6b3be9005"
+    },
+    "planning-with-files-zh": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/othmanadi/planning-with-files",
+      "sourceType": "local",
+      "computedHash": "fcdfd50238f3fda5dba8ecd8b49bd80018d93bd75241b61549a32f33dd35ef4e"
+    },
+    "python-patterns": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "16fa370e24821a211eff44d9deb129e05f4ccebfaa8c14277824fd4103635af5"
+    },
+    "search-first": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "a65ca647d87a6cc2adb054f83135388709307a9d6a070915080578fb6d9c345c"
+    },
+    "strategic-compact": {
+      "source": "/Users/liangjiayu/projects/skills/GitHub-skills/ecc",
+      "sourceType": "local",
+      "computedHash": "9d9718a451a832920f42feb3d5c5e2a66e138d385e62011aed3bcb0bbe871570"
+    }
+  }
+}
