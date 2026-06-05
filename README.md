@@ -1,12 +1,12 @@
 # 自动日报工具
 
-自动采集 Claude 会话记录和飞书数据（聊天、文档、日程），通过 LLM 生成标准化日报、周报、月报。
+自动采集 Claude / Codex 会话记录和飞书数据（聊天、文档、日程），通过 LLM 生成标准化日报、周报、月报。
 
 ## 一、快速开始（用户视角）
 
 ### 1.1 功能特性
 
-- 多源数据采集：Claude 历史会话、Claude 项目会话、飞书聊天、飞书文档、飞书日程
+- 多源数据采集：Claude 历史会话、Claude 项目会话、Codex 会话、飞书聊天、飞书文档、飞书日程
 - 智能过滤：自动分类聊天记录，过滤无效内容，标记与你相关的消息
 - 报告生成：支持日报、周报、月报
 - 缓存机制：已采集的数据自动缓存，避免重复请求
@@ -19,15 +19,58 @@
 pip install -r requirements.txt
 ```
 
-### 1.3 配置说明
+### 1.3 初始化
 
-复制 `config.example.yaml` 为 `config.yaml` 并编辑：
+推荐先运行初始化引导，它会生成 env-backed 的 `config.yaml`，敏感信息仍从环境变量读取：
+
+```bash
+python daily_report.py --init
+```
+
+如果需要覆盖已有配置：
+
+```bash
+python daily_report.py --init --force
+```
+
+初始化后配置环境变量：
+
+```bash
+export ARK_API_KEY="your_ark_api_key"
+export FEISHU_APP_ID="your_feishu_app_id"
+export FEISHU_APP_SECRET="your_feishu_app_secret"
+export FEISHU_REDIRECT_URI="http://localhost:8080/callback"
+```
+
+如果启用飞书集成，运行授权命令。`--callback` 会启动本地回调服务自动承接飞书返回的 auth code：
+
+```bash
+python -m feishu auth --callback
+python -m feishu status
+```
+
+Codex 会话默认自动采集并生成本地总结，纳入日报上下文；当天没有 Codex 会话时自动跳过。
+
+### 1.4 配置说明
+
+也可以复制 `config.example.yaml` 为 `config.yaml` 后手动编辑：
 
 ```yaml
 # Claude 会话路径配置
 claude:
   history_path: "~/.claude/history.jsonl"
   projects_path: "~/.claude/projects"
+
+# Codex 会话路径配置
+codex:
+  enabled: true
+  sessions_path: "~/.codex/sessions"
+  history_path: "~/.codex/history.jsonl"
+  exclude_keywords:
+    - "xueqiu"
+    - "quant"
+    - "daily_report"
+    - "daily-report"
 
 # LLM 配置
 llm:
@@ -54,23 +97,7 @@ feishu:
   redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
 ```
 
-**环境变量配置：**
-
-在 `~/.zshrc` 或 `~/.bashrc` 中添加：
-
-```bash
-export ARK_API_KEY="your_ark_api_key"
-export FEISHU_APP_ID="your_feishu_app_id"
-export FEISHU_APP_SECRET="your_feishu_app_secret"
-export FEISHU_REDIRECT_URI="your_redirect_uri"
-```
-
-如果启用飞书集成，需要先授权：
-```bash
-python -m feishu auth
-```
-
-### 1.4 使用方式
+### 1.5 使用方式
 
 ```bash
 # 生成今天的日报
@@ -95,7 +122,7 @@ python daily_report.py --weekly 2026-W12
 python daily_report.py --monthly 2026-03
 ```
 
-### 1.5 Crontab 定时配置
+### 1.6 Crontab 定时配置
 
 项目提供了 `cron-wrapper.sh` 和 `crontab.txt` 用于定时任务配置：
 
@@ -137,6 +164,8 @@ crontab -e
 graph TD
     A[Claude 历史会话] --> B
     C[Claude 项目会话] --> B
+    X[Codex 会话] --> Y[本地总结]
+    Y --> B
     D[飞书聊天] --> E[ChatFilter 分类过滤]
     F[飞书文档] --> G[文档导出与摘要]
     H[飞书日程] --> B

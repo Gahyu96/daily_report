@@ -14,8 +14,9 @@ daily_report/
 │   ├── weekly/
 │   └── monthly/
 ├── daily_report.py       # 主入口
-├── collector.py          # Claude 会话采集
+├── collector.py          # Claude / Codex 会话采集
 ├── generator.py          # 日报生成
+├── setup_wizard.py       # 初始化配置引导
 ├── config.yaml           # 配置文件
 ├── crontab.example       # Crontab 示例
 ├── requirements.txt      # 依赖
@@ -36,6 +37,12 @@ daily_report/
 - 内容：分步实现计划、代码示例、测试步骤
 
 ## 日报生成优化说明
+
+### 初始化与授权
+
+- 新用户优先运行 `python daily_report.py --init` 生成 env-backed 配置。
+- 飞书授权使用 `python -m feishu auth --callback`，由本地回调服务承接 auth code。
+- Codex 会话默认自动采集并生成本地总结；当天没有 Codex 会话时自动跳过，不需要用户传额外开关。
 
 ### Prompt 优化点
 

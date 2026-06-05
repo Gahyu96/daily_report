@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from feishu.auth import FeishuAuthenticator, RefreshTokenExpiredError
+from feishu.auth import FeishuAuthenticator, RefreshTokenExpiredError, wait_for_oauth_callback
 from feishu.collector import FeishuCollector
 from daily_report import load_config
 
@@ -295,6 +295,10 @@ def main():
     parser.add_argument("--limit", type=int, default=20, help="结果数量限制 (search 命令使用) / 最多 N 条消息 (summarize 命令使用)")
     parser.add_argument("--days", type=int, default=2, help="获取最近 N 天 (summarize 命令使用)")
     parser.add_argument("--output", help="输出文件路径 (summarize 命令使用)")
+    parser.add_argument("--callback", action="store_true", help="auth 命令使用: 启动本地回调服务自动接收授权码")
+    parser.add_argument("--callback-host", default="127.0.0.1", help="OAuth 本地回调监听地址")
+    parser.add_argument("--callback-port", type=int, default=8080, help="OAuth 本地回调监听端口")
+    parser.add_argument("--callback-timeout", type=int, default=300, help="OAuth 本地回调等待秒数")
     parser.add_argument("-q", "--quiet", action="store_true", help="静默模式，只输出错误信息（适合 crontab）")
     args = parser.parse_args()
 
@@ -329,7 +333,18 @@ def main():
     if args.command == "auth":
         url = auth.get_authorization_url()
         print(f"请访问以下 URL 进行授权:\n{url}")
-        code = input("请输入授权码: ")
+        if args.callback:
+            print(
+                f"\n等待飞书回调: http://{args.callback_host}:{args.callback_port}/callback"
+            )
+            print("请确认飞书应用的重定向 URL 与 config.yaml 中 feishu.redirect_uri 一致。")
+            code = wait_for_oauth_callback(
+                host=args.callback_host,
+                port=args.callback_port,
+                timeout=args.callback_timeout,
+            )
+        else:
+            code = input("请输入授权码: ")
         token_data = auth.exchange_code_for_token(code)
         print(f"授权成功! Token 已保存")
         print(f"Access token 过期时间: {datetime.fromtimestamp(token_data['expires_at'])}")

@@ -12,8 +12,9 @@ from typing import Dict, Any, List, Optional, Tuple
 import yaml
 
 from cache_manager import CacheManager
-from collector import ClaudeCollector
+from collector import ClaudeCollector, CodexCollector
 from generator import ReportGenerator
+from setup_wizard import run_init
 
 # 新增导入
 from feishu import FeishuAuthenticator, FeishuCollector, ChatFilter, FeishuDocExporter
@@ -88,6 +89,10 @@ def build_combined_text(structured_data: Dict[str, str]) -> str:
         parts.append("=== Claude 历史会话 ===\n" + structured_data["claude_history"])
     if structured_data.get("claude_projects"):
         parts.append("=== Claude 项目会话 ===\n" + structured_data["claude_projects"])
+    if structured_data.get("codex_sessions"):
+        parts.append("=== Codex 会话 ===\n" + structured_data["codex_sessions"])
+    if structured_data.get("codex_summary"):
+        parts.append("=== Codex 会话总结 ===\n" + structured_data["codex_summary"])
     if structured_data.get("feishu_chats"):
         parts.append("=== 飞书会话 ===\n" + structured_data["feishu_chats"])
     if structured_data.get("feishu_docs"):
@@ -114,9 +119,14 @@ def collect_all_sources(
     parts = []
 
     # 1. Claude 历史会话
+    claude_cfg = config.get("claude", {})
+    codex_cfg = config.get("codex", {})
+    exclude_kws = codex_cfg.get("exclude_keywords", None)
+
     claude_collector = ClaudeCollector(
-        config["claude"]["history_path"],
-        config["claude"]["projects_path"],
+        claude_cfg["history_path"],
+        claude_cfg["projects_path"],
+        exclude_keywords=exclude_kws,
     )
 
     source = "claude_history"
@@ -153,7 +163,44 @@ def collect_all_sources(
     if content:
         parts.append("=== Claude 项目会话 ===\n" + content)
 
-    # 3. 飞书集成
+    # 3. Codex 会话
+    source = "codex_sessions"
+    if codex_cfg.get("enabled", False):
+        if force or not cache_mgr.has_cache(date, source):
+            codex_collector = CodexCollector(
+                sessions_path=codex_cfg.get("sessions_path", "~/.codex/sessions"),
+                history_path=codex_cfg.get("history_path", "~/.codex/history.jsonl"),
+                exclude_keywords=exclude_kws,
+            )
+            content = codex_collector.collect_for_date(date)
+            content = codex_collector._truncate_long_content(content)
+            session_count = content.count("--- Codex 会话:") if content else 0
+            cache_mgr.write_cache(date, source, content, {"条数": str(session_count)})
+            if content:
+                summary = codex_collector.summarize_for_date(date)
+                cache_mgr.write_cache(date, "codex_summary", summary, {"条数": str(session_count)})
+        else:
+            content = cache_mgr.read_cache(date, source) or ""
+            summary = cache_mgr.read_cache(date, "codex_summary") or ""
+        if content:
+            if not summary:
+                codex_collector = CodexCollector(
+                    sessions_path=codex_cfg.get("sessions_path", "~/.codex/sessions"),
+                    history_path=codex_cfg.get("history_path", "~/.codex/history.jsonl"),
+                    exclude_keywords=exclude_kws,
+                )
+                content = codex_collector.collect_for_date(date)
+                content = codex_collector._truncate_long_content(content)
+                session_count = content.count("--- Codex 会话:") if content else 0
+                cache_mgr.write_cache(date, source, content, {"条数": str(session_count)})
+                summary = codex_collector.summarize_for_date(date)
+                cache_mgr.write_cache(date, "codex_summary", summary, {"条数": str(session_count)})
+            structured_data[source] = content
+            parts.append("=== Codex 会话 ===\n" + content)
+            structured_data["codex_summary"] = summary
+            parts.append("=== Codex 会话总结 ===\n" + summary)
+
+    # 4. 飞书集成
     if config.get("feishu", {}).get("enabled", False) and validate_feishu_config(config):
         feishu_structured = collect_feishu_sources(date, config, cache_mgr, force)
         if feishu_structured:
@@ -168,7 +215,7 @@ def collect_all_sources(
                 structured_data["feishu_calendar"] = feishu_structured["feishu_calendar"]
                 parts.append("=== 飞书日程 ===\n" + feishu_structured["feishu_calendar"])
 
-    # 4. 继承任务
+    # 5. 继承任务
     inheritance_mgr = TaskInheritanceManager(config["report"]["base_dir"])
     yesterday = date - timedelta(days=1)
     inherited_tasks = inheritance_mgr.get_incomplete_tasks_from_daily(yesterday)
@@ -546,6 +593,11 @@ def main():
         action="store_true",
         help="强制重新生成，即使已存在",
     )
+    parser.add_argument(
+        "--init",
+        action="store_true",
+        help="生成默认配置并显示初始化引导",
+    )
 
     args = parser.parse_args()
 
@@ -557,13 +609,19 @@ def main():
         print("Error: --start is required when using --end")
         sys.exit(1)
 
+    if args.init:
+        run_init(args.config, force=args.force)
+        return
+
     # 加载配置
     config = load_config(args.config)
 
     # 创建 collector 和 generator
+    _exclude_kws = config.get("codex", {}).get("exclude_keywords", None)
     collector = ClaudeCollector(
         config["claude"]["history_path"],
         config["claude"]["projects_path"],
+        exclude_keywords=_exclude_kws,
     )
     generator = ReportGenerator(
         config["llm"],

@@ -62,6 +62,8 @@ class ReportGenerator:
 来源名称示例：
 - Claude 历史会话
 - Claude 项目会话 xxx（会话ID）
+- Codex 会话总结
+- Codex 会话 xxx（会话ID）
 - 飞书会话 xxx（群名或对方名）
 - 飞书智能纪要 xxx.docx
 - 飞书文档 xxx.docx
@@ -462,6 +464,8 @@ class ReportGenerator:
 以下是所有重要的数据来源，请综合分析：
 - Claude 历史会话：用户的需求和对话
 - Claude 项目会话：AI-agent 执行的结果
+- Codex 会话总结：Codex 工作会话的本地汇总
+- Codex 会话：Codex 中用户需求和 AI 执行过程
 - 飞书会话：工作聊天记录（重要来源）
 - 飞书文档：包括智能纪要（会议内容重要来源）
 - 飞书日程：当天日历事件，用于确定上下午时间分组
@@ -592,6 +596,7 @@ class ReportGenerator:
 ## 附录：数据源索引
 - Claude 历史会话: N 条消息
 - Claude 项目会话: N 个会话
+- Codex 会话: N 个会话
 - 飞书会话: N 个（M个群聊 + K个私聊）
 - 飞书文档: N 个（含智能纪要 M 个）
 - 飞书日程: N 个事件
