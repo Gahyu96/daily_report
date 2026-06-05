@@ -5,7 +5,7 @@
 source "$HOME/.zshrc"
 
 # 切换到项目目录
-cd "$HOME/projects/daily_report" || exit 1
+cd "$HOME/projects/tools/daily_report" || exit 1
 
 # 执行传入的命令
 exec "$@"

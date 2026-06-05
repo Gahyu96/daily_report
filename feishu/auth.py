@@ -5,6 +5,7 @@ import json
 import os
 import time
 import urllib.parse
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -33,6 +34,64 @@ class APIError(Exception):
 class NetworkError(Exception):
     """网络请求错误"""
     pass
+
+
+def parse_oauth_callback_query(path: str) -> Dict[str, Optional[str]]:
+    """从 OAuth 回调路径中解析授权码或错误信息"""
+    parsed = urllib.parse.urlparse(path)
+    query = urllib.parse.parse_qs(parsed.query)
+    return {
+        "code": query.get("code", [None])[0],
+        "state": query.get("state", [None])[0],
+        "error": query.get("error", [None])[0],
+        "error_description": query.get("error_description", [None])[0],
+    }
+
+
+def wait_for_oauth_callback(host: str = "127.0.0.1", port: int = 8080, timeout: int = 300) -> str:
+    """启动一次性本地 HTTP 服务，等待飞书 OAuth code 回调"""
+    result: Dict[str, Optional[str]] = {
+        "code": None,
+        "error": None,
+        "error_description": None,
+    }
+
+    class OAuthCallbackHandler(BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802 - stdlib callback name
+            parsed_result = parse_oauth_callback_query(self.path)
+            result.update(parsed_result)
+            if parsed_result.get("code"):
+                body = (
+                    "<html><body><h1>授权成功</h1>"
+                    "<p>可以关闭这个页面，回到终端继续。</p></body></html>"
+                )
+                self.send_response(200)
+            else:
+                body = (
+                    "<html><body><h1>授权失败</h1>"
+                    "<p>请回到终端查看错误信息。</p></body></html>"
+                )
+                self.send_response(400)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(body.encode("utf-8"))
+
+        def log_message(self, format, *args):  # noqa: A002 - stdlib signature
+            return
+
+    server = HTTPServer((host, port), OAuthCallbackHandler)
+    server.timeout = timeout
+    try:
+        server.handle_request()
+    finally:
+        server.server_close()
+
+    if result.get("error"):
+        detail = result.get("error_description") or result["error"]
+        raise APIError(-1, f"OAuth callback error: {detail}")
+    if not result.get("code"):
+        raise TimeoutError(f"OAuth callback timed out after {timeout} seconds")
+    return result["code"] or ""
 
 
 class FeishuAuthenticator:

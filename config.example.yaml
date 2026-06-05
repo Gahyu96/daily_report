@@ -3,6 +3,13 @@ claude:
   history_path: "~/.claude/history.jsonl"
   projects_path: "~/.claude/projects"
 
+# Codex 会话路径配置
+# 默认启用；当天没有 Codex 会话时自动跳过
+codex:
+  enabled: true
+  sessions_path: "~/.codex/sessions"
+  history_path: "~/.codex/history.jsonl"
+
 # LLM 配置
 llm:
   api_key: "os.environ/ARK_API_KEY"
@@ -21,10 +28,13 @@ report:
 #   export FEISHU_REDIRECT_URI="your_redirect_uri"
 feishu:
   enabled: false  # 默认不启用，配置好环境变量后设为 true
+  app_id: "os.environ/FEISHU_APP_ID"
+  app_secret: "os.environ/FEISHU_APP_SECRET"
   env_dir: "~/.feishu_env"
   chat_cache_dir: "cache/feishu_chat_cache"
   temp_dir: "cache/feishu_docs_cache"
   llm_token_limit: 15000
   recent_docs_days: 7
   doc_summary_threshold: 10000
+  redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
   scope: "contact:user.basic_profile:readonly contact:user.base:readonly contact:user.id:readonly contact:user.email:readonly contact:user.department:readonly contact:user:search contact:department.base:readonly directory:department.base:read directory:department:list directory:department:read directory:employee.base.base:read directory:employee.base.department:read directory:employee.base.email:read directory:employee.base.name.name:read directory:employee:list directory:employee:read im:chat im:message calendar:calendar calendar:calendar:read calendar:calendar:readonly calendar:calendar.event:read docs:doc docs:doc:readonly docs:document.content:read docs:document:copy docs:document:export drive:drive drive:file drive:file:readonly drive:file:download vc:meeting vc:meeting:readonly vc:record:readonly minutes:minutes minutes:minutes:readonly wiki:wiki wiki:wiki:readonly search:docs:read offline_access sheets:spreadsheet docx:document board:whiteboard:node:read bitable:app docs:doc contact:contact.base:readonly board:whiteboard:node:read"  # OAuth scope
