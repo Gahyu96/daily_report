@@ -6,7 +6,15 @@ from pathlib import Path
 
 from collector import CodexCollector
 from feishu.auth import parse_oauth_callback_query
-from setup_wizard import build_config, build_next_steps, write_config
+from setup_wizard import (
+    build_config,
+    build_local_next_steps,
+    build_next_steps,
+    collect_local_doctor_checks,
+    choose_callback_port,
+    rewrite_local_callback_uri,
+    write_config,
+)
 
 
 class CodexCollectorTest(unittest.TestCase):
@@ -94,6 +102,7 @@ class SetupWizardTest(unittest.TestCase):
         self.assertEqual(config["feishu"]["redirect_uri"], "http://localhost:8080/callback")
         self.assertTrue(config["codex"]["enabled"])
         self.assertEqual(config["codex"]["sessions_path"], "~/.codex/sessions")
+        self.assertEqual(config["llm"]["model"], "deepseek-v4-flash-260425")
 
     def test_write_config_does_not_overwrite_without_force(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -112,6 +121,114 @@ class SetupWizardTest(unittest.TestCase):
         self.assertIn("python -m feishu auth --callback", steps)
         self.assertIn("Codex 会话会自动纳入日报", steps)
         self.assertNotIn("--codex-summary", steps)
+
+    def test_local_next_steps_point_to_doctor_and_callback_auth(self):
+        steps = "\n".join(build_local_next_steps())
+
+        self.assertIn("python daily_report.py doctor", steps)
+        self.assertIn("python -m feishu auth --callback", steps)
+        self.assertIn("python daily_report.py --yesterday", steps)
+
+    def test_local_doctor_reports_ready_environment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            token_dir = root / "feishu_env"
+            token_dir.mkdir()
+            (token_dir / "token_cache.json").write_text(
+                json.dumps({
+                    "access_token": "access",
+                    "refresh_token": "refresh",
+                    "expires_at": 2_000_000_000,
+                    "refresh_expires_at": 2_000_000_000,
+                }),
+                encoding="utf-8",
+            )
+            claude_projects = root / "claude_projects"
+            codex_sessions = root / "codex_sessions"
+            claude_projects.mkdir()
+            codex_sessions.mkdir()
+
+            config = build_config()
+            config["feishu"]["env_dir"] = str(token_dir)
+            config["claude"]["projects_path"] = str(claude_projects)
+            config["codex"]["sessions_path"] = str(codex_sessions)
+
+            checks = collect_local_doctor_checks(
+                config,
+                env={
+                    "ARK_API_KEY": "ark-key",
+                    "FEISHU_APP_ID": "app-id",
+                    "FEISHU_APP_SECRET": "app-secret",
+                    "FEISHU_REDIRECT_URI": "http://localhost:8080/callback",
+                },
+                port_checker=lambda host, port: port == 8080,
+                endpoint_checker=lambda llm_config: (True, "endpoint ok"),
+                now=1_900_000_000,
+            )
+
+        self.assertTrue(all(check["ok"] for check in checks), checks)
+        self.assertEqual(
+            [check["name"] for check in checks],
+            [
+                "Feishu app id/secret",
+                "Feishu redirect URI",
+                "OAuth callback port",
+                "Feishu token",
+                "Claude projects directory",
+                "Codex sessions directory",
+                "LLM endpoint",
+            ],
+        )
+
+    def test_choose_callback_port_falls_back_when_8080_is_busy(self):
+        port = choose_callback_port(
+            "127.0.0.1",
+            8080,
+            port_checker=lambda host, candidate: candidate == 8082,
+            max_attempts=5,
+        )
+
+        self.assertEqual(port, 8082)
+
+    def test_rewrite_local_callback_uri_uses_fallback_port(self):
+        redirect_uri = rewrite_local_callback_uri(
+            "http://localhost:8080/callback",
+            8082,
+        )
+
+        self.assertEqual(redirect_uri, "http://localhost:8082/callback")
+
+    def test_rewrite_local_callback_uri_falls_back_for_unresolved_env_reference(self):
+        redirect_uri = rewrite_local_callback_uri(
+            "os.environ/FEISHU_REDIRECT_URI",
+            8082,
+        )
+
+        self.assertEqual(redirect_uri, "http://localhost:8082/callback")
+
+    def test_local_doctor_reports_actionable_failures(self):
+        config = build_config()
+        config["feishu"]["redirect_uri"] = "http://localhost:9999/callback"
+        config["feishu"]["env_dir"] = "/tmp/daily-report-missing-token-dir"
+        config["claude"]["projects_path"] = "/tmp/daily-report-missing-claude"
+        config["codex"]["sessions_path"] = "/tmp/daily-report-missing-codex"
+
+        checks = collect_local_doctor_checks(
+            config,
+            env={},
+            port_checker=lambda host, port: False,
+            endpoint_checker=lambda llm_config: (False, "missing api key"),
+            now=1_900_000_000,
+        )
+
+        failed = {check["name"]: check["message"] for check in checks if not check["ok"]}
+        self.assertIn("FEISHU_APP_ID", failed["Feishu app id/secret"])
+        self.assertIn("http://localhost:8080/callback", failed["Feishu redirect URI"])
+        self.assertIn("可用端口", failed["OAuth callback port"])
+        self.assertIn("python -m feishu auth --callback", failed["Feishu token"])
+        self.assertIn("不存在", failed["Claude projects directory"])
+        self.assertIn("不存在", failed["Codex sessions directory"])
+        self.assertIn("missing api key", failed["LLM endpoint"])
 
 
 class FeishuOAuthCallbackTest(unittest.TestCase):

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from feishu.auth import FeishuAuthenticator, RefreshTokenExpiredError, wait_for_oauth_callback
 from feishu.collector import FeishuCollector
 from daily_report import load_config
+from setup_wizard import choose_callback_port, rewrite_local_callback_uri
 
 
 def search_messages(config, query=None, relative_time="today", page_size=20):
@@ -297,7 +298,7 @@ def main():
     parser.add_argument("--output", help="输出文件路径 (summarize 命令使用)")
     parser.add_argument("--callback", action="store_true", help="auth 命令使用: 启动本地回调服务自动接收授权码")
     parser.add_argument("--callback-host", default="127.0.0.1", help="OAuth 本地回调监听地址")
-    parser.add_argument("--callback-port", type=int, default=8080, help="OAuth 本地回调监听端口")
+    parser.add_argument("--callback-port", type=int, default=8080, help="OAuth 本地回调监听端口；被占用时自动尝试后续端口")
     parser.add_argument("--callback-timeout", type=int, default=300, help="OAuth 本地回调等待秒数")
     parser.add_argument("-q", "--quiet", action="store_true", help="静默模式，只输出错误信息（适合 crontab）")
     args = parser.parse_args()
@@ -331,16 +332,27 @@ def main():
     )
 
     if args.command == "auth":
+        callback_port = args.callback_port
+        if args.callback:
+            selected_port = choose_callback_port(args.callback_host, args.callback_port)
+            if selected_port is None:
+                print(f"错误: 未找到可用 OAuth callback 端口（从 {args.callback_port} 开始尝试）")
+                sys.exit(1)
+            callback_port = selected_port
+            if callback_port != args.callback_port:
+                print(f"端口 {args.callback_port} 已被占用，改用备用端口 {callback_port}")
+            auth.redirect_uri = rewrite_local_callback_uri(auth.redirect_uri, callback_port)
+
         url = auth.get_authorization_url()
         print(f"请访问以下 URL 进行授权:\n{url}")
         if args.callback:
             print(
-                f"\n等待飞书回调: http://{args.callback_host}:{args.callback_port}/callback"
+                f"\n等待飞书回调: http://{args.callback_host}:{callback_port}/callback"
             )
-            print("请确认飞书应用的重定向 URL 与 config.yaml 中 feishu.redirect_uri 一致。")
+            print(f"请确认飞书应用的重定向 URL 已允许: {auth.redirect_uri}")
             code = wait_for_oauth_callback(
                 host=args.callback_host,
-                port=args.callback_port,
+                port=callback_port,
                 timeout=args.callback_timeout,
             )
         else:

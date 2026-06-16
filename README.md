@@ -21,16 +21,16 @@ pip install -r requirements.txt
 
 ### 1.3 初始化
 
-推荐先运行初始化引导，它会生成 env-backed 的 `config.yaml`，敏感信息仍从环境变量读取：
+本地用户推荐先运行初始化启动器，它会生成 `config.yaml`，敏感信息仍从环境变量读取：
 
 ```bash
-python daily_report.py --init
+python daily_report.py init local
 ```
 
 如果需要覆盖已有配置：
 
 ```bash
-python daily_report.py --init --force
+python daily_report.py --force init local
 ```
 
 初始化后配置环境变量：
@@ -39,7 +39,12 @@ python daily_report.py --init --force
 export ARK_API_KEY="your_ark_api_key"
 export FEISHU_APP_ID="your_feishu_app_id"
 export FEISHU_APP_SECRET="your_feishu_app_secret"
-export FEISHU_REDIRECT_URI="http://localhost:8080/callback"
+```
+
+然后先运行本地环境检查：
+
+```bash
+python daily_report.py doctor
 ```
 
 如果启用飞书集成，运行授权命令。`--callback` 会启动本地回调服务自动承接飞书返回的 auth code：
@@ -49,9 +54,53 @@ python -m feishu auth --callback
 python -m feishu status
 ```
 
+默认回调地址是 `http://localhost:8080/callback`。如果 8080 端口被占用，授权命令会自动尝试后续可用端口（如 `8081`），并在终端打印本次使用的回调地址。飞书开放平台中的应用重定向 URL 必须允许终端打印的地址，否则浏览器授权会失败。
+
 Codex 会话默认自动采集并生成本地总结，纳入日报上下文；当天没有 Codex 会话时自动跳过。
 
-### 1.4 配置说明
+### 1.4 三平台逐步流程
+
+下面三组命令是同一条本地启动流程。`doctor` 会做初始化检查；`auth --callback` 会打开真实飞书授权流程；`--yesterday` 会真实请求 LLM 并生成报告。
+
+**macOS / Linux**
+
+```bash
+python -m pip install -r requirements.txt
+python daily_report.py init local
+
+export ARK_API_KEY="your_ark_api_key"
+export FEISHU_APP_ID="your_feishu_app_id"
+export FEISHU_APP_SECRET="your_feishu_app_secret"
+
+python daily_report.py doctor
+python -m feishu auth --callback
+python -m feishu status
+python daily_report.py --yesterday
+```
+
+**Windows PowerShell**
+
+```powershell
+py -3 -m pip install -r requirements.txt
+py -3 daily_report.py init local
+
+$env:ARK_API_KEY = "your_ark_api_key"
+$env:FEISHU_APP_ID = "your_feishu_app_id"
+$env:FEISHU_APP_SECRET = "your_feishu_app_secret"
+
+py -3 daily_report.py doctor
+py -3 -m feishu auth --callback
+py -3 -m feishu status
+py -3 daily_report.py --yesterday
+```
+
+PowerShell 中 `$env:` 只对当前窗口生效；如果要长期保存，请写入系统/用户环境变量后重新打开终端。
+
+**端口兼容**
+
+默认 OAuth 回调监听 `http://localhost:8080/callback`。如果 8080 被占用，`doctor` 会提示备用端口，`python -m feishu auth --callback` 也会自动改用后续可用端口，并在终端打印实际回调地址。飞书开放平台的重定向 URL 必须允许终端打印的地址。
+
+### 1.5 配置说明
 
 也可以复制 `config.example.yaml` 为 `config.yaml` 后手动编辑：
 
@@ -71,7 +120,7 @@ codex:
 llm:
   api_key: "os.environ/ARK_API_KEY"
   base_url: "https://ark.cn-beijing.volces.com/api/v3/responses"
-  model: "doubao-seed-2-0-pro-260215"
+  model: "deepseek-v4-flash-260425"
   timeout: 600
 
 # 日报输出配置
@@ -92,7 +141,7 @@ feishu:
   redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
 ```
 
-### 1.5 使用方式
+### 1.6 使用方式
 
 ```bash
 # 生成今天的日报
@@ -117,7 +166,7 @@ python daily_report.py --weekly 2026-W12
 python daily_report.py --monthly 2026-03
 ```
 
-### 1.6 Crontab 定时配置
+### 1.7 Crontab 定时配置
 
 项目提供了 `cron-wrapper.sh` 和 `crontab.txt` 用于定时任务配置：
 
@@ -250,7 +299,7 @@ daily_report/
 
 飞书集成需要：
 1. 创建飞书企业自建应用
-2. 配置回调地址（支持 ngrok）
+2. 配置回调地址（默认 `http://localhost:8080/callback`；如本机 8080 被占用，可按终端提示增加备用端口回调地址）
 3. 授权获取 access_token
 4. 配置所需权限 scope
 
@@ -266,8 +315,11 @@ ls -la cache/
 # 强制刷新缓存
 python daily_report.py --date 2026-03-20 --force
 
+# 检查本地初始化状态
+python daily_report.py doctor
+
 # 飞书 token 管理
-python -m feishu auth          # 重新授权
+python -m feishu auth --callback  # 重新授权并自动承接回调
 python -m feishu status        # 查看 token 状态
 python -m feishu refresh       # 刷新 token
 ```
@@ -277,7 +329,10 @@ python -m feishu refresh       # 刷新 token
 ## 四、常见问题
 
 **Q: 飞书 token 过期了怎么办？**
-A: 运行 `python -m feishu auth` 重新授权。
+A: 运行 `python -m feishu auth --callback` 重新授权。
+
+**Q: 8080 端口被占用了怎么办？**
+A: `python -m feishu auth --callback` 会自动尝试后续可用端口，并打印实际使用的回调地址。需要确认飞书开放平台应用的重定向 URL 允许该地址。
 
 **Q: 如何只更新某一天的报告？**
 A: 使用 `--force` 参数：`python daily_report.py --date 2026-03-20 --force`

@@ -14,7 +14,7 @@ import yaml
 from cache_manager import CacheManager
 from collector import ClaudeCollector, CodexCollector
 from generator import ReportGenerator
-from setup_wizard import run_init
+from setup_wizard import run_doctor, run_init, run_local_init
 
 # 新增导入
 from feishu import FeishuAuthenticator, FeishuCollector, ChatFilter, FeishuDocExporter
@@ -549,6 +549,18 @@ def get_dates_to_process(args) -> list:
 
 def main():
     parser = argparse.ArgumentParser(description="自动日报生成工具")
+    parser.add_argument(
+        "command",
+        nargs="?",
+        choices=["init", "doctor"],
+        help="辅助命令: init-初始化启动器, doctor-检查本地环境",
+    )
+    parser.add_argument(
+        "profile",
+        nargs="?",
+        choices=["local"],
+        help="init 命令使用: local-本地开发者模式",
+    )
 
     # 日期选项
     date_group = parser.add_mutually_exclusive_group()
@@ -600,6 +612,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.command == "init":
+        run_local_init(args.config, force=args.force)
+        return
+
+    if args.command == "doctor":
+        config = load_config(args.config)
+        ok = run_doctor(config)
+        sys.exit(0 if ok else 1)
 
     # 验证 --start/--end
     if args.start and not args.end:
