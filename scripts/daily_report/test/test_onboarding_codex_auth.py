@@ -18,6 +18,15 @@ from setup_wizard import (
 
 
 class CodexCollectorTest(unittest.TestCase):
+    def test_default_collector_does_not_filter_project_paths(self):
+        collector = CodexCollector()
+
+        self.assertFalse(
+            collector._should_exclude_cwd(
+                "/Users/example/projects/private-project"
+            )
+        )
+
     def test_collects_and_summarizes_codex_sessions_for_a_date(self):
         with tempfile.TemporaryDirectory() as tmp:
             sessions_root = Path(tmp) / "sessions"
@@ -89,6 +98,13 @@ class CodexCollectorTest(unittest.TestCase):
 
 
 class SetupWizardTest(unittest.TestCase):
+    def test_public_configs_do_not_include_private_exclude_keywords(self):
+        config = build_config()
+        example_config = Path("config.example.yaml").read_text(encoding="utf-8")
+
+        self.assertNotIn("exclude_keywords", config["codex"])
+        self.assertNotIn("exclude_keywords", example_config)
+
     def test_build_config_uses_env_backed_credentials_and_enables_codex(self):
         config = build_config(
             enable_feishu=True,
