@@ -2,6 +2,7 @@
 飞书文档导出与智能总结模块
 """
 import sys
+import os
 import subprocess
 import shutil
 import re
@@ -127,12 +128,22 @@ class FeishuDocExporter:
             return None
 
     def _build_export_cmd(self, doc_url: str, output_dir: Path) -> List[str]:
-        """构建 feishu-docx export 命令，包含 token 参数"""
-        cmd = ["feishu-docx", "export", doc_url, "-o", str(output_dir)]
+        """构建 feishu-docx export 命令；token 通过环境变量传入。"""
+        return ["feishu-docx", "export", doc_url, "-o", str(output_dir)]
+
+    def _build_export_env(self) -> Dict[str, str]:
+        """构建导出子进程环境，避免把 user_access_token 暴露在进程参数里。"""
+        env = os.environ.copy()
         access_token = self._get_access_token()
         if access_token:
-            cmd.extend(["-t", access_token])
-        return cmd
+            env["FEISHU_ACCESS_TOKEN"] = access_token
+        return env
+
+    def _redact_token(self, text: str) -> str:
+        access_token = self._get_access_token()
+        if access_token and text:
+            return text.replace(access_token, "[REDACTED_FEISHU_ACCESS_TOKEN]")
+        return text
 
     def export_doc(self, doc_url: str) -> Optional[str]:
         """导出单个文档（带缓存）"""
@@ -147,7 +158,7 @@ class FeishuDocExporter:
         doc_title = None
         try:
             cmd = self._build_export_cmd(doc_url, temp_export_dir)
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=self._build_export_env())
 
             if result.returncode == 0:
                 # 从输出中提取标题
@@ -212,10 +223,10 @@ class FeishuDocExporter:
 
         try:
             cmd = self._build_export_cmd(doc_url, cache_folder)
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=self._build_export_env())
 
             if result.returncode != 0:
-                raise DocExportError(f"feishu-docx failed with code {result.returncode}: {result.stderr}")
+                raise DocExportError(f"feishu-docx failed with code {result.returncode}: {self._redact_token(result.stderr)}")
 
             # 如果还没有标题，从输出中提取
             if not doc_title:
@@ -252,19 +263,16 @@ class FeishuDocExporter:
             try:
                 cmd = [
                     sys.executable,
-                    "-m",
-                    "feishu_docx",
+                    "-c",
+                    "import sys; from feishu_docx.cli.main import app; sys.exit(app())",
                     "export",
                     doc_url,
                     "-o", str(cache_folder)
                 ]
-                access_token = self._get_access_token()
-                if access_token:
-                    cmd.extend(["-t", access_token])
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=self._build_export_env())
 
                 if result.returncode != 0:
-                    raise DocExportError(f"feishu-docx module failed with code {result.returncode}: {result.stderr}")
+                    raise DocExportError(f"feishu-docx module failed with code {result.returncode}: {self._redact_token(result.stderr)}")
 
                 md_file = self._get_md_path(cache_folder)
                 if not md_file:

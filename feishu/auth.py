@@ -8,7 +8,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import requests
 
 
@@ -231,6 +231,46 @@ class FeishuAuthenticator:
 
         self._save_token_cache(new_token_data)
         return new_token_data
+
+    def get_user_info(self, access_token: Optional[str] = None) -> Dict[str, Any]:
+        """获取当前 OAuth 授权用户信息"""
+        access_token = access_token or self.get_access_token()
+        url = "https://open.feishu.cn/open-apis/authen/v1/user_info"
+        headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+        try:
+            resp = requests.get(url, headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.RequestException as e:
+            raise NetworkError(f"Network request failed: {e}") from e
+
+        if data.get("code") != 0:
+            raise APIError(data.get("code", -1), data.get("msg", "Unknown error"))
+
+        return data.get("data", {})
+
+    def get_user_display_names(self, access_token: Optional[str] = None) -> List[str]:
+        """返回用于识别当前用户的姓名别名：全名 + 后两位。"""
+        token_data = self._load_token_cache() or {}
+        user_info = token_data.get("user_info") or {}
+        if not user_info:
+            user_info = self.get_user_info(access_token)
+            if user_info and token_data:
+                token_data["user_info"] = user_info
+                self._save_token_cache(token_data)
+
+        names = []
+        for key in ("name", "en_name"):
+            value = str(user_info.get(key, "")).strip()
+            if value and value not in names:
+                names.append(value)
+            if len(value) >= 2:
+                tail = value[-2:]
+                if tail and tail not in names:
+                    names.append(tail)
+        return names
 
     def _save_token_cache(self, token_data: Dict[str, Any]) -> None:
         """保存 token 缓存"""

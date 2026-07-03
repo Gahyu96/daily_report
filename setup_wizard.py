@@ -74,6 +74,7 @@ def build_config(
             "doc_summary_threshold": 10000,
             "redirect_uri": redirect_uri,
             "scope": DEFAULT_FEISHU_SCOPE,
+            "user_aliases": [],
         },
     }
 

@@ -257,6 +257,13 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
         print(f"飞书认证失败: {e}")
         return result
 
+    try:
+        current_user_names = auth.get_user_display_names(access_token)
+    except Exception as e:
+        current_user_names = []
+        print(f"Warning: Failed to fetch feishu authorized user info: {e}")
+    current_user_names.extend(feishu_config.get("user_aliases") or [])
+
     collector = FeishuCollector(access_token, feishu_config.get("chat_cache_dir", "cache/feishu_chat_cache"))
 
     # 严格的目标日期时间范围
@@ -334,7 +341,11 @@ def collect_feishu_sources(date: datetime, config: dict, cache_mgr: CacheManager
     if result.get("feishu_chats"):
         t0 = time.time()
         try:
-            chat_filter = ChatFilter(config["llm"])
+            chat_filter = ChatFilter(
+                config["llm"],
+                token_limit=feishu_config.get("llm_token_limit", 15000),
+                user_names=current_user_names,
+            )
             chat_content = result["feishu_chats"]
             sessions = chat_filter._split_into_sessions(chat_content)
             filtered_parts = []

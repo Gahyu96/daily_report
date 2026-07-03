@@ -37,4 +37,7 @@ feishu:
   recent_docs_days: 7
   doc_summary_threshold: 10000
   redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
+  # 可选：补充“当前授权用户”的匹配别名，例如昵称、常用称呼。
+  # 程序会自动读取飞书授权用户姓名，并追加姓名后两位；这里仅放额外匹配词。
+  user_aliases: []
   scope: "contact:user.basic_profile:readonly contact:user.base:readonly contact:user.id:readonly contact:user.email:readonly contact:user.department:readonly contact:user:search contact:department.base:readonly directory:department.base:read directory:department:list directory:department:read directory:employee.base.base:read directory:employee.base.department:read directory:employee.base.email:read directory:employee.base.name.name:read directory:employee:list directory:employee:read im:chat im:message calendar:calendar calendar:calendar:read calendar:calendar:readonly calendar:calendar.event:read docs:doc docs:doc:readonly docs:document.content:read docs:document:copy docs:document:export drive:drive drive:file drive:file:readonly drive:file:download vc:meeting vc:meeting:readonly vc:record:readonly minutes:minutes minutes:minutes:readonly wiki:wiki wiki:wiki:readonly search:docs:read offline_access sheets:spreadsheet docx:document board:whiteboard:node:read bitable:app docs:doc contact:contact.base:readonly board:whiteboard:node:read"  # OAuth scope

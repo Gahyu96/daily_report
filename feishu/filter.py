@@ -45,8 +45,8 @@ class ChatFilter:
         "新品见面会", "产品面对面", "共学通知", "新版本更新"
     ]
 
-    # 用户标识（用于判断"与我相关"）
-    USER_NAMES = ["梁嘉裕", "梁哥"]
+    # 用户标识由飞书 OAuth 当前授权用户动态注入。
+    USER_NAMES: List[str] = []
 
     FILTER_PROMPT = """你是一个工作内容过滤助手。请从以下飞书聊天记录中，提取所有与工作相关的内容，过滤掉纯闲聊。
 
@@ -78,9 +78,26 @@ class ChatFilter:
 - 对于模糊的内容，保守处理（不确定的就保留）
 """
 
-    def __init__(self, llm_config: Dict[str, Any], token_limit: int = 15000):
+    def __init__(self, llm_config: Dict[str, Any], token_limit: int = 15000, user_names: Optional[List[str]] = None):
         self.llm_config = llm_config
         self.token_limit = token_limit
+        self.user_names = self._normalize_user_names(user_names or self.USER_NAMES)
+
+    @staticmethod
+    def _normalize_user_names(user_names: List[str]) -> List[str]:
+        """去重并补充每个姓名的后两位别名。"""
+        normalized = []
+        for raw_name in user_names:
+            name = str(raw_name).strip()
+            if not name:
+                continue
+            if name not in normalized:
+                normalized.append(name)
+            if len(name) >= 2:
+                tail = name[-2:]
+                if tail not in normalized:
+                    normalized.append(tail)
+        return normalized
 
     def classify_and_filter_chats(self, chat_content: str) -> Tuple[str, Dict[str, int]]:
         """
@@ -127,9 +144,9 @@ class ChatFilter:
     def _mark_relevant_messages(self, session_header: str, session_content: str) -> str:
         """
         标记群聊中与我相关的消息
-        - 梁嘉裕发的消息前加 👤
-        - @梁嘉裕 的消息前加 📌
-        - 与梁嘉裕直接相关的对话上下文保留
+        - 当前授权用户发的消息前加 👤
+        - @当前授权用户的消息前加 📌
+        - 与当前授权用户直接相关的对话上下文保留
         """
         lines = session_content.strip().split("\n")
         if not lines:
@@ -167,15 +184,15 @@ class ChatFilter:
         return f"{session_header}\n" + "\n".join(marked_lines)
 
     def _is_user_message(self, line: str) -> bool:
-        """判断是否是用户（梁嘉裕）发的消息"""
-        for name in self.USER_NAMES:
+        """判断是否是当前授权用户发的消息"""
+        for name in self.user_names:
             if f"] {name}:" in line or f"]{name}:" in line:
                 return True
         return False
 
     def _is_mention_user(self, line: str) -> bool:
-        """判断是否@了用户（梁嘉裕）"""
-        for name in self.USER_NAMES:
+        """判断是否@了当前授权用户"""
+        for name in self.user_names:
             if f"@{name}" in line:
                 return True
         return False

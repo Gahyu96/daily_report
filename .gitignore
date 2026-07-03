@@ -1,0 +1,51 @@
+# 输出目录
+reports/
+*reports*
+data/
+cache/
+output/
+graphify-out/
+
+# 个人/临时脚本（非项目核心功能，含本机硬编码路径）
+extract_all_interviews.py
+extract_simple.py
+# Claude Code 配置（不提交）
+.claude/
+.skills-lock.json
+*leader*
+# 配置文件（含敏感信息，不提交）
+config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# 临时文件
+# task_plan.md
+# findings.md
+# progress.md
+/test_*.py
+scripts/daily_report/test/test_onboarding_codex_auth.py
+
+# Git worktrees
+.worktrees/

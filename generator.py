@@ -370,6 +370,7 @@ class ReportGenerator:
             # 构建请求数据
             request_data = {
                 "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
+                "max_output_tokens": self.llm_config.get("max_output_tokens", 384000),
                 "input": [
                     {
                         "role": "user",
@@ -935,6 +936,7 @@ class ReportGenerator:
             # 构建请求数据
             request_data = {
                 "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
+                "max_output_tokens": self.llm_config.get("max_output_tokens", 384000),
                 "input": [
                     {
                         "role": "user",
@@ -1083,6 +1085,7 @@ class ReportGenerator:
             # 构建请求数据
             request_data = {
                 "model": self.llm_config.get("model", "doubao-seed-2-0-pro-260215"),
+                "max_output_tokens": self.llm_config.get("max_output_tokens", 384000),
                 "input": [
                     {
                         "role": "user",

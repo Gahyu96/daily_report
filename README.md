@@ -139,7 +139,12 @@ feishu:
   recent_docs_days: 7
   doc_summary_threshold: 10000
   redirect_uri: "os.environ/FEISHU_REDIRECT_URI"
+  user_aliases:
+    - "你的昵称"
+    - "常用称呼"
 ```
+
+`user_aliases` 用于补充“与我相关”的飞书消息匹配。程序会自动读取当前飞书授权用户姓名，并追加姓名后两位；这里仅需要写额外别名。
 
 ### 1.6 使用方式
 
